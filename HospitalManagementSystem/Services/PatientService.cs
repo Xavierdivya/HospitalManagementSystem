@@ -8,7 +8,14 @@ namespace HospitalManagementSystem.Services;
 
 internal class PatientService
 {
-    public List<Patient> patients = new List<Patient>();
+    private readonly List<Patient> patients;
+    private readonly List<Appointment> appointments;
+
+    public PatientService(List<Patient> patients, List<Appointment> appointments)
+    {
+        this.patients = patients;
+        this.appointments = appointments;
+    }
 
     //Register a Patient
     public void RegisterPatient(Patient patient)
@@ -20,15 +27,16 @@ internal class PatientService
         }
         if (string.IsNullOrWhiteSpace(patient.PatientId))
         {
-            throw new ArgumentNullException("Patient Id must not be Empty");
+            throw new ArgumentException("Patient Id must not be Empty");
         }
         if (string.IsNullOrWhiteSpace(patient.PatientName))
         {
             throw new ArgumentNullException("Patient Name must not be Empty");
         }
-        if (patient.Age <= 0 || patient.Age >= 100)
+        if (patient.Age <= 0 || patient.Age >= 120)
         {
-            throw new ArgumentException("Patient Age must be valid");
+            throw new ArgumentException(
+                "Patient age must be between 1 and 119");
         }
         if (string.IsNullOrWhiteSpace(patient.Phonenumber))
         {
@@ -53,10 +61,15 @@ internal class PatientService
     //Display All Patients
     public void DisplayPatients()
     {
+        if (patients.Count == 0)
+        {
+            Console.WriteLine("No patients found.");
+            return;
+        }
         Console.WriteLine("===Patient List===");
         foreach (var patient in patients)
         {
-            Console.WriteLine($"Patient Name : {patient.PatientId}\nId : {patient.PatientId}\nPhone Number : {patient.Phonenumber}\nAge : {patient.Age}\nEmail : {patient.Email}");
+            Console.WriteLine($"Patient Name : {patient.PatientName}\nId : {patient.PatientId}\nPhone Number : {patient.Phonenumber}\nAge : {patient.Age}\nEmail : {patient.Email}");
         }
 
     }
@@ -79,10 +92,16 @@ internal class PatientService
 
     public void SearchPatient(string searchtext)
     {
+        
         Console.WriteLine("===Searching...===");
         var results = patients
             .Where(p => p.PatientName != null && p.PatientName.Contains(searchtext, StringComparison.OrdinalIgnoreCase))
             .ToList();
+        if (results.Count == 0)
+        {
+            Console.WriteLine("No matching patients found.");
+            return;
+        }
 
         foreach (var patient in results)
         {
@@ -101,9 +120,9 @@ internal class PatientService
         }
         if (string.IsNullOrWhiteSpace(patient.PatientName))
         {
-            throw new ArgumentNullException("Patient Name must not be empty");
+            throw new ArgumentException("Patient Name must not be empty");
         }
-        if (patient.Age <= 0 || patient.Age >= 100)
+        if (patient.Age <= 0 || patient.Age >= 120)
         {
             throw new ArgumentException("Patient Age must be valid");
         }
@@ -116,10 +135,10 @@ internal class PatientService
             throw new ArgumentException("Email must be valid");
         }
 
-       string patientName = patient.PatientName;
-       string phoneNumber = patient.Phonenumber;
-       int age = patient.Age;
-       string email = patient.Email;
+       p.PatientName = patient.PatientName;
+       p.Phonenumber = patient.Phonenumber;
+       p.Age = patient.Age;
+       p.Email = patient.Email;
 
         Console.WriteLine("Patient details Updated Successfully");
 
@@ -132,6 +151,15 @@ internal class PatientService
         if (p == null)
         {
             Console.WriteLine("Patient does not exist");
+            return;
+        }
+        bool hasAppointments = appointments.Any(
+         a => a.PatientId == patientId);
+
+        if (hasAppointments)
+        {
+            Console.WriteLine(
+                "Cannot delete patient because appointments are linked.");
             return;
         }
         patients.Remove(p);

@@ -6,8 +6,17 @@ using System.Text;
 namespace HospitalManagementSystem.Services;
 
     internal class DoctorService{
-    public List<Doctor> doctors = new List<Doctor>();
+    private readonly List<Doctor> doctors;
 
+    private readonly List<Appointment> appointments;
+
+    public DoctorService(
+        List<Doctor> doctors,
+        List<Appointment> appointments)
+    {
+        this.doctors = doctors;
+        this.appointments = appointments;
+    }
     //Register a Patient
     public void RegisterDoctor(Doctor doctor)
     {
@@ -30,7 +39,7 @@ namespace HospitalManagementSystem.Services;
         }
         if (doctor.ConsultationFee <= 0)
         {
-            throw new ArgumentNullException("Consultation fee not non-nagative");
+            throw new ArgumentException("Consultation fee cannot be negative");
         }
 
         var existingDoctor = doctors.FirstOrDefault(p => p.Id == doctor.Id);
@@ -40,13 +49,18 @@ namespace HospitalManagementSystem.Services;
         }
 
         doctors.Add(doctor);
-        Console.WriteLine("Patient added Successfully");
+        Console.WriteLine("Doctor added Successfully");
 
     }
 
     //Display All Doctors
     public void DisplayDoctor()
     {
+        if (doctors.Count == 0)
+        {
+            Console.WriteLine("No doctors found.");
+            return;
+        }
         Console.WriteLine("===Dispaly Doctor List===");
         foreach (var doctor in doctors)
         {
@@ -78,7 +92,12 @@ namespace HospitalManagementSystem.Services;
         var results = doctors
             .Where(p => p.Name != null && ((p.Name.Contains(searchtext, StringComparison.OrdinalIgnoreCase))
             || (p.Specialization.Contains(searchtext, StringComparison.OrdinalIgnoreCase)))).ToList();
-          
+
+        if (results.Count == 0)
+        {
+            Console.WriteLine("No doctors found.");
+            return;
+        }
 
         foreach (var doctors in results)
         {
@@ -96,16 +115,20 @@ namespace HospitalManagementSystem.Services;
             Console.WriteLine("Doctor does not exist");
             return;
         }
+        if (string.IsNullOrWhiteSpace(doctor.Name))
+        {
+            throw new ArgumentException("Doctor name must not be empty");
+        }
         if (string.IsNullOrWhiteSpace(doctor.Specialization))
         {
             throw new ArgumentNullException("Specialization must not be empty");
         }
-        if(doctor.ConsultationFee <= 0)
+        if(doctor.ConsultationFee < 0)
         {
-            throw new ArgumentNullException("Consultation fee not non-nagative");
+            throw new ArgumentException("Consultation fee cannot be negative");
         }
-        string specialization = doctor.Specialization;
-        decimal consultationFee = doctor.ConsultationFee;
+        p.Specialization = doctor.Specialization;
+        p.ConsultationFee = doctor.ConsultationFee;
 
         Console.WriteLine("Doctors details Updated Successfully");
 
@@ -121,6 +144,16 @@ namespace HospitalManagementSystem.Services;
             Console.WriteLine("Doctor does not exist");
             return;
         }
+        bool hasAppointments = appointments.Any(
+        a => a.DoctorId == Id);
+
+        if (hasAppointments)
+        {
+            Console.WriteLine(
+                "Cannot delete doctor because appointments are linked to this doctor.");
+            return;
+        }
+
         doctors.Remove(p);
         Console.WriteLine("Doctor removed Successfully");
 

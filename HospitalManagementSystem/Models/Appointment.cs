@@ -11,9 +11,9 @@ namespace HospitalManagementSystem.Models;
     public string DoctorId { get; set; }
     public DateTime AppointmentDateTime { get; set; }
     public string Reason { get; set;}
-    public string Status {  get; set;}
+    public AppointmentStatus Status {  get; set;}
 
-    public Appointment(string appointmentId, string patientId, string doctorId, DateTime appointmentDateTime, string reason, string status)
+    public Appointment(string appointmentId, string patientId, string doctorId, DateTime appointmentDateTime, string reason, AppointmentStatus status)
     {
         AppointmentId = appointmentId;
         PatientId = patientId;
